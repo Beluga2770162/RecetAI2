@@ -4,23 +4,27 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.recetai.ui.theme.RecetAITheme
 import java.util.Locale
 
-// Diccionario de rutas para la navegación
 object AppScreen {
     const val HOME = "home"
     const val SCAN = "scan"
-    const val REVIEW = "review"
     const val PROFILE = "profile"
     const val LOGIN = "login"
     const val REGISTER = "register"
@@ -31,20 +35,12 @@ object AppScreen {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Inicializamos las preferencias compartidas para persistencia
         val sharedPref = getSharedPreferences("RecetAI_Prefs", Context.MODE_PRIVATE)
 
         setContent {
-            // ESTADOS PERSISTENTES (Sobreviven a la navegación y rotación)
-            var darkThemeEnabled by rememberSaveable {
-                mutableStateOf(sharedPref.getBoolean("isDarkMode", true))
-            }
-            var currentLanguage by rememberSaveable {
-                mutableStateOf(sharedPref.getString("language", "es") ?: "es")
-            }
+            var darkThemeEnabled by rememberSaveable { mutableStateOf(sharedPref.getBoolean("isDarkMode", true)) }
+            var currentLanguage by rememberSaveable { mutableStateOf(sharedPref.getString("language", "es") ?: "es") }
 
-            // APLICACIÓN DINÁMICA DEL IDIOMA
             val locale = Locale(currentLanguage)
             Locale.setDefault(locale)
             val configuration = LocalConfiguration.current
@@ -52,77 +48,86 @@ class MainActivity : ComponentActivity() {
             val resources = LocalContext.current.resources
             resources.updateConfiguration(configuration, resources.displayMetrics)
 
-            // APLICACIÓN DEL TEMA
             RecetAITheme(darkTheme = darkThemeEnabled) {
                 val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination?.route
 
-                NavHost(
-                    navController = navController,
-                    startDestination = AppScreen.HOME
-                ) {
-                    // PANTALLA: HOME
-                    composable(AppScreen.HOME) {
-                        HomeScreen(
-                            onNavigateToScan = { navController.navigate(AppScreen.SCAN) },
-                            onNavigateToProfile = { navController.navigate(AppScreen.PROFILE) }
-                        )
+                Scaffold(
+                    bottomBar = {
+                        if (currentDestination != AppScreen.LOGIN && currentDestination != AppScreen.REGISTER) {
+                            NavigationBar {
+                                NavigationBarItem(
+                                    selected = currentDestination == AppScreen.HOME || currentDestination == null,
+                                    onClick = { navController.navigate(AppScreen.HOME) },
+                                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                                    label = { Text("Inicio") }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == AppScreen.SCAN,
+                                    onClick = { navController.navigate(AppScreen.SCAN) },
+                                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                                    label = { Text("Escanear") }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == AppScreen.PROFILE,
+                                    onClick = { navController.navigate(AppScreen.PROFILE) },
+                                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                                    label = { Text("Perfil") }
+                                )
+                            }
+                        }
                     }
-
-                    // PANTALLA: PERFIL (Donde ocurre la magia del cambio)
-                    composable(AppScreen.PROFILE) {
-                        ProfileScreen(
-                            isDarkMode = darkThemeEnabled,
-                            onThemeChanged = { nuevoValor ->
-                                // Actualizamos estado y guardamos en preferencias
-                                darkThemeEnabled = nuevoValor
-                                sharedPref.edit().putBoolean("isDarkMode", nuevoValor).apply()
-                            },
-                            currentLanguage = currentLanguage,
-                            onLanguageChanged = { nuevoIdioma ->
-                                // Actualizamos estado y guardamos en preferencias
-                                currentLanguage = nuevoIdioma
-                                sharedPref.edit().putString("language", nuevoIdioma).apply()
-                            },
-                            onNavigateToLogin = { navController.navigate(AppScreen.LOGIN) },
-                            onNavigateToRegister = { navController.navigate(AppScreen.REGISTER) },
-                            onNavigateToTerms = { navController.navigate(AppScreen.TERMS) },
-                            onNavigateToContact = { navController.navigate(AppScreen.CONTACT) }
-                        )
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = AppScreen.HOME,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable(AppScreen.HOME) {
+                            HomeScreen(
+                                onNavigateToScan = { navController.navigate(AppScreen.SCAN) },
+                                onNavigateToProfile = { navController.navigate(AppScreen.PROFILE) }
+                            )
+                        }
+                        composable(AppScreen.SCAN) { ScanScreen() }
+                        composable(AppScreen.PROFILE) {
+                            ProfileScreen(
+                                isDarkMode = darkThemeEnabled,
+                                onThemeChanged = { nuevo: Boolean ->
+                                    darkThemeEnabled = nuevo
+                                    sharedPref.edit().putBoolean("isDarkMode", nuevo).apply()
+                                },
+                                currentLanguage = currentLanguage,
+                                onLanguageChanged = { lang: String ->
+                                    currentLanguage = lang
+                                    sharedPref.edit().putString("language", lang).apply()
+                                },
+                                onNavigateToLogin = { navController.navigate(AppScreen.LOGIN) },
+                                onNavigateToRegister = { navController.navigate(AppScreen.REGISTER) },
+                                onNavigateToTerms = { navController.navigate(AppScreen.TERMS) },
+                                onNavigateToContact = { navController.navigate(AppScreen.CONTACT) }
+                            )
+                        }
+                        composable(AppScreen.TERMS) {
+                            ContratoConElDiablo(onBack = { navController.popBackStack() })
+                        }
+                        composable(AppScreen.CONTACT) {
+                            ContactScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable(AppScreen.LOGIN) {
+                            LoginScreen(
+                                onLoginSuccess = { navController.navigate(AppScreen.HOME) },
+                                onNavigateToRegister = { navController.navigate(AppScreen.REGISTER) }
+                            )
+                        }
+                        composable(AppScreen.REGISTER) {
+                            RegisterScreen(
+                                onRegisterSuccess = { navController.navigate(AppScreen.LOGIN) },
+                                onNavigateToLogin = { navController.navigate(AppScreen.LOGIN) }
+                            )
+                        }
                     }
-
-                    // PANTALLA: LOGIN
-                    composable(AppScreen.LOGIN) {
-                        LoginScreen(
-                            onLoginSuccess = {
-                                navController.navigate(AppScreen.HOME) {
-                                    popUpTo(AppScreen.LOGIN) { inclusive = true }
-                                }
-                            },
-                            onNavigateToRegister = { navController.navigate(AppScreen.REGISTER) }
-                        )
-                    }
-
-                    // PANTALLA: REGISTRO
-                    composable(AppScreen.REGISTER) {
-                        RegisterScreen(
-                            onRegisterSuccess = {
-                                navController.navigate(AppScreen.HOME) {
-                                    popUpTo(AppScreen.LOGIN) { inclusive = true }
-                                }
-                            },
-                            onNavigateToLogin = { navController.navigate(AppScreen.LOGIN) }
-                        )
-                    }
-
-                    // PANTALLAS RESTANTES
-                    composable(AppScreen.TERMS) {
-                        TermsScreen(onBack = { navController.popBackStack() })
-                    }
-                    composable(AppScreen.CONTACT) {
-                        ContactScreen(onBack = { navController.popBackStack() })
-                    }
-
-                    // Asegúrate de incluir ScanScreen e IngredientReviewScreen si ya las tienes
                 }
             }
         }
@@ -173,31 +178,3 @@ class MainActivity : ComponentActivity() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Este trabajo fue realizado gracias a cantidades insalubres de whiskey barato $120 por botella, google Gemini, al coraje que tome desde el martes cuando vi que mi ex agarro nuevo wey despues de mi accidente, Godzilla, Super Sentai y el tokosatsu en general
