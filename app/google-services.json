@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "439577583162",
+    "project_id": "autobnb-ocemt",
+    "storage_bucket": "autobnb-ocemt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:439577583162:android:db6cb6b25a46097792df03",
+        "android_client_info": {
+          "package_name": "com.example.recetai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8Ole8t2-47rubcZ2lk77pFQmeOMrxCYA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
