@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RecetAI</string>
+    <string name="profile_title">Perfil</string>
+    <string name="settings_title">Preferencias</string>
+    <string name="dark_mode">Tema Oscuro</string>
+    <string name="terms">Términos y Condiciones</string>
+    <string name="contact">Contacto</string>
+    <string name="welcome">Bienvenido a RecetAI</string>
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="rate_app">Valorar App</string>
+    <string name="email_label">Correo Electrónico</string>
+</resources>
