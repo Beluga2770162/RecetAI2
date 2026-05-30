@@ -9,7 +9,6 @@ fun buscarReceta(ingredientes: List<String>): String {
         setOf("Bread", "Ham", "Cheese") to "Un sándwich clásico nunca falla."
     )
 
-    // Buscamos si lo que tienes coincide con algo de nuestro menú
     for ((necesarios, nombreReceta) in menu) {
         if (ingredientes.containsAll(necesarios.toList())) {
             return nombreReceta

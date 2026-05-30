@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
-    // ESTADOS: Aquí guardamos lo que César escriba en el Xiaomi
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -65,7 +64,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateToLogin: () -> Unit)
 
         Spacer(Modifier.height(16.dp))
 
-        // CAMPO: PASSWORD
+        // CAMPO: CONTRASENA
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -77,7 +76,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateToLogin: () -> Unit)
 
         Spacer(Modifier.height(16.dp))
 
-        // CAMPO: CONFIRMAR PASSWORD
+        // CAMPO: CONFIRMAR CONTRASENA
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -93,7 +92,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onNavigateToLogin: () -> Unit)
 
         Spacer(Modifier.height(32.dp))
 
-        // BOTÓN: REGISTRARSE (VALIDACIÓN BÁSICA)
+        // BOTÓN: REGISTRARSE
         Button(
             onClick = {
                 if (password != confirmPassword) {

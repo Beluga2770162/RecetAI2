@@ -43,7 +43,7 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary)
-            Text(text = "Hola, Carlos", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Hola, Cesar", fontSize = 22.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(24.dp))
 

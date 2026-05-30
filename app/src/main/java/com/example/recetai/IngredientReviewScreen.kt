@@ -18,12 +18,12 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IngredientReviewScreen(initialIngredients: List<String>, onConfirm: (List<String>) -> Unit) {
-    // Usamos mutableStateListOf para que la interfaz reaccione al borrar/agregar
+    // Favor de tampoco tocar es lo mas importante de esta pantalla
     val ingredients = remember { mutableStateListOf(*initialIngredients.toTypedArray()) }
     var newIngredient by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = Color(0xFF0F172A), // Slate 900
+        containerColor = Color(0xFF0F172A),
         topBar = { TopAppBar(title = { Text("Revisar Ingredientes", color = Color.White) },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0F172A))) }
     ) { padding ->
@@ -74,3 +74,5 @@ fun IngredientReviewScreen(initialIngredients: List<String>, onConfirm: (List<St
     }
 }
 
+//Esto dejo de conectarse con la camara al momento de hacer una actualizacion
+//Nota de Emilio: Me quiero volver chango

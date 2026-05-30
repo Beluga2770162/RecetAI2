@@ -1,5 +1,5 @@
 package com.example.recetai
-
+//No quiero ver ni un solo movimiento a esto porfavor
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -84,13 +84,20 @@ class MainActivity : ComponentActivity() {
                         startDestination = AppScreen.HOME,
                         modifier = Modifier.padding(innerPadding)
                     ) {
+
                         composable(AppScreen.HOME) {
                             HomeScreen(
                                 onNavigateToScan = { navController.navigate(AppScreen.SCAN) },
                                 onNavigateToProfile = { navController.navigate(AppScreen.PROFILE) }
                             )
                         }
-                        composable(AppScreen.SCAN) { ScanScreen() }
+
+
+                        composable(AppScreen.SCAN) {
+                            ScanScreen()
+                        }
+
+
                         composable(AppScreen.PROFILE) {
                             ProfileScreen(
                                 isDarkMode = darkThemeEnabled,
@@ -109,18 +116,26 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToContact = { navController.navigate(AppScreen.CONTACT) }
                             )
                         }
+
+
                         composable(AppScreen.TERMS) {
                             ContratoConElDiablo(onBack = { navController.popBackStack() })
                         }
+
+
                         composable(AppScreen.CONTACT) {
                             ContactScreen(onBack = { navController.popBackStack() })
                         }
+
+
                         composable(AppScreen.LOGIN) {
                             LoginScreen(
                                 onLoginSuccess = { navController.navigate(AppScreen.HOME) },
                                 onNavigateToRegister = { navController.navigate(AppScreen.REGISTER) }
                             )
                         }
+
+
                         composable(AppScreen.REGISTER) {
                             RegisterScreen(
                                 onRegisterSuccess = { navController.navigate(AppScreen.LOGIN) },
@@ -128,11 +143,12 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+                        }
+                    }
                 }
             }
         }
-    }
-}
+
 
 
 

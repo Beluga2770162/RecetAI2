@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "880966393437",
+    "project_id": "recetai-607af",
+    "storage_bucket": "recetai-607af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880966393437:android:cdd7282c309192c4b7f7b4",
+        "android_client_info": {
+          "package_name": "com.example.recetai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "880966393437-0koor85earga1uc61toplvcbgbl6kujl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.recetai",
+            "certificate_hash": "357cfafa84d0c475822da97811ad989fe6d49535"
+          }
+        },
+        {
+          "client_id": "880966393437-e0nq8v3ohrafdg1r402t2qop2j69umpf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_Yhu3kdVZRNc0ojYFOD4d2EjGZJvSUaQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "880966393437-e0nq8v3ohrafdg1r402t2qop2j69umpf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

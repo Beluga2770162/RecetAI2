@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
+//Favor de no mover nada de aqui
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -64,7 +65,7 @@ fun ContactScreen(onBack: () -> Unit) {
 
             Button(
                 onClick = {
-                    val numero = "524491234567" // Tu número de Aguascalientes
+                    val numero = "524491234567"
                     val mensaje = "Hola, necesito soporte con RecetAI."
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         data = Uri.parse("https://wa.me/$numero?text=${Uri.encode(mensaje)}")

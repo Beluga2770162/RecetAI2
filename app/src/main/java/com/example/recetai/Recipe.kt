@@ -8,6 +8,5 @@ data class Recipe(
     val time: String = "",
     val difficulty: String = "",
     val imageUrl: String = "",
-    // Crucial para comparar con lo que detecte tu Xiaomi
     val ingredients: List<String> = emptyList()
 )
