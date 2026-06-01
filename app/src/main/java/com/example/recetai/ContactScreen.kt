@@ -1,0 +1,227 @@
+package com.example.recetai
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ContactScreen(
+    onBack: () -> Unit
+) {
+
+    val context = LocalContext.current
+
+    Scaffold(
+
+        topBar = {
+
+            TopAppBar(
+
+                title = {
+                    Text("Centro de Contacto")
+                },
+
+                navigationIcon = {
+
+                    IconButton(
+                        onClick = onBack
+                    ) {
+
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
+                    }
+                }
+            )
+        }
+
+    ) { innerPadding ->
+
+        Column(
+
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp)
+                .verticalScroll(
+                    rememberScrollState()
+                ),
+
+            horizontalAlignment =
+                Alignment.CenterHorizontally
+
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                modifier = Modifier.size(72.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
+
+            Text(
+                text = "Estamos para ayudarte",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = "¿Tienes dudas sobre recetas, ingredientes o tu cuenta? Contáctanos.",
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+
+            // WHATSAPP
+
+            Button(
+
+                onClick = {
+
+                    val numero = "524491234567"
+
+                    val mensaje =
+                        "Hola, necesito soporte con RecetAI."
+
+                    val intent =
+                        Intent(Intent.ACTION_VIEW).apply {
+
+                            data = Uri.parse(
+                                "https://wa.me/$numero?text=${Uri.encode(mensaje)}"
+                            )
+                        }
+
+                    context.startActivity(intent)
+                },
+
+                modifier = Modifier.fillMaxWidth()
+
+            ) {
+
+                Icon(
+                    Icons.Default.Phone,
+                    contentDescription = null
+                )
+
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
+                Text("Contactar por WhatsApp")
+            }
+
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
+
+            // EMAIL
+
+            Card(
+
+                modifier = Modifier.fillMaxWidth(),
+
+                onClick = {
+
+                    val intent = Intent(
+                        Intent.ACTION_SENDTO,
+                        Uri.parse(
+                            "mailto:soporte@recetai.com"
+                        )
+                    )
+
+                    context.startActivity(intent)
+                }
+
+            ) {
+
+                Row(
+
+                    modifier = Modifier.padding(16.dp),
+
+                    verticalAlignment =
+                        Alignment.CenterVertically
+
+                ) {
+
+                    Icon(
+                        Icons.Default.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(16.dp)
+                    )
+
+                    Column {
+
+                        Text(
+                            text = "Soporte vía Email",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "soporte@recetai.com"
+                        )
+                    }
+                }
+            }
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+
+            HorizontalDivider()
+
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
+
+            Text(
+                text = "Horario de atención",
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Lunes a Viernes\n09:00 - 18:00",
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+
+            Text(
+                text = "Versión 1.0.0",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
