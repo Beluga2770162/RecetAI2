@@ -11,13 +11,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,15 +26,30 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-
+    
     val auth = remember {
         FirebaseAuth.getInstance()
     }
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    val firestore = remember {
+        FirebaseFirestore.getInstance()
+    }
+
+    var name by remember {
+        mutableStateOf("")
+    }
+
+    var email by remember {
+        mutableStateOf("")
+    }
+
+    var password by remember {
+        mutableStateOf("")
+    }
+
+    var confirmPassword by remember {
+        mutableStateOf("")
+    }
 
     var errorMessage by remember {
         mutableStateOf("")
@@ -47,7 +63,9 @@ fun RegisterScreen(
 
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(
+                MaterialTheme.colorScheme.background
+            )
             .padding(24.dp),
 
         horizontalAlignment =
@@ -62,7 +80,7 @@ fun RegisterScreen(
             imageVector = Icons.Default.Person,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = Color(0xFF4ADE80)
+            tint = MaterialTheme.colorScheme.primary
         )
 
         Spacer(
@@ -71,14 +89,18 @@ fun RegisterScreen(
 
         Text(
             text = "Únete a RecetAI",
-            color = Color.White,
+            color =
+                MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
             text = "Crea tu cuenta para guardar recetas",
-            color = Color.Gray
+            color =
+                MaterialTheme.colorScheme.onBackground.copy(
+                    alpha = 0.7f
+                )
         )
 
         Spacer(
@@ -180,7 +202,7 @@ fun RegisterScreen(
 
             Text(
                 text = errorMessage,
-                color = Color.Red
+                color = MaterialTheme.colorScheme.error
             )
         }
 
@@ -198,11 +220,14 @@ fun RegisterScreen(
 
                 onClick = {
 
+                    errorMessage = ""
+
                     when {
 
                         name.isBlank() ||
                                 email.isBlank() ||
-                                password.isBlank() -> {
+                                password.isBlank() ||
+                                confirmPassword.isBlank() -> {
 
                             errorMessage =
                                 "Completa todos los campos"
@@ -224,17 +249,55 @@ fun RegisterScreen(
 
                             isLoading = true
 
-                            auth
-                                .createUserWithEmailAndPassword(
-                                    email.trim(),
-                                    password.trim()
-                                )
+                            auth.createUserWithEmailAndPassword(
+                                email.trim(),
+                                password.trim()
+                            )
 
-                                .addOnSuccessListener {
+                                .addOnSuccessListener { result ->
 
-                                    isLoading = false
+                                    val firebaseUser =
+                                        result.user
 
-                                    onRegisterSuccess()
+                                    firebaseUser?.updateProfile(
+
+                                        UserProfileChangeRequest.Builder()
+                                            .setDisplayName(
+                                                name.trim()
+                                            )
+                                            .build()
+                                    )
+
+                                    val userData = User(
+                                        uid =
+                                            firebaseUser?.uid ?: "",
+                                        name =
+                                            name.trim(),
+                                        email =
+                                            email.trim()
+                                    )
+
+                                    firestore
+                                        .collection("users")
+                                        .document(
+                                            firebaseUser?.uid ?: ""
+                                        )
+                                        .set(userData)
+
+                                        .addOnSuccessListener {
+
+                                            isLoading = false
+
+                                            onRegisterSuccess()
+                                        }
+
+                                        .addOnFailureListener {
+
+                                            isLoading = false
+
+                                            errorMessage =
+                                                "Usuario creado pero no guardado en Firestore"
+                                        }
                                 }
 
                                 .addOnFailureListener {
@@ -242,7 +305,7 @@ fun RegisterScreen(
                                     isLoading = false
 
                                     errorMessage =
-                                        it.message
+                                        it.localizedMessage
                                             ?: "Error al registrar"
                                 }
                         }
@@ -268,9 +331,9 @@ fun RegisterScreen(
         ) {
 
             Text(
-                text = "¿Ya tienes cuenta? Inicia sesión",
-                color = Color(0xFF4ADE80)
+                text = "¿Ya tienes cuenta? Inicia sesión"
             )
         }
     }
+
 }

@@ -22,12 +22,12 @@ fun IngredientReviewScreen(
     onConfirm: (List<String>) -> Unit
 ) {
 
-    val ingredients =
-        remember {
-            mutableStateListOf(
-                *initialIngredients.toTypedArray()
-            )
-        }
+    val ingredients = remember {
+
+        mutableStateListOf(
+            *initialIngredients.toTypedArray()
+        )
+    }
 
     var newIngredient by remember {
         mutableStateOf("")
@@ -35,23 +35,20 @@ fun IngredientReviewScreen(
 
     Scaffold(
 
-        containerColor = Color(0xFF0F172A),
+        containerColor =
+            MaterialTheme.colorScheme.background,
 
         topBar = {
 
             TopAppBar(
 
                 title = {
+
                     Text(
                         text = "Revisar Ingredientes",
-                        color = Color.White
+                        fontWeight = FontWeight.Bold
                     )
-                },
-
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF0F172A)
-                    )
+                }
             )
         }
 
@@ -67,9 +64,9 @@ fun IngredientReviewScreen(
         ) {
 
             Text(
-                text = "Ingredientes detectados",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
+                text = "Ingredientes Detectados",
+                style =
+                    MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
@@ -78,25 +75,22 @@ fun IngredientReviewScreen(
             )
 
             Text(
-                text = "La IA puede equivocarse. Agrega o elimina ingredientes antes de buscar recetas.",
-                color = Color.LightGray
+                text =
+                    "Revisa los ingredientes antes de buscar recetas."
             )
 
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(16.dp)
             )
 
             Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF1E293B)
-                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
 
                 Text(
-                    text = "Detectados: ${ingredients.size} ingredientes",
+                    text =
+                        "Total: ${ingredients.size} ingredientes",
                     modifier = Modifier.padding(16.dp),
-                    color = Color.White,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -106,35 +100,50 @@ fun IngredientReviewScreen(
             )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
 
-                TextField(
+                OutlinedTextField(
+
                     value = newIngredient,
+
                     onValueChange = {
                         newIngredient = it
                     },
 
-                    placeholder = {
-                        Text("Agregar ingrediente...")
+                    modifier =
+                        Modifier.weight(1f),
+
+                    label = {
+                        Text("Agregar ingrediente")
                     },
 
-                    modifier = Modifier.weight(1f),
-
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF1E293B),
-                        unfocusedContainerColor = Color(0xFF1E293B)
-                    )
+                    singleLine = true
                 )
 
-                IconButton(
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
+                FilledIconButton(
 
                     onClick = {
 
-                        if (newIngredient.isNotBlank()) {
+                        val ingrediente =
+                            newIngredient
+                                .trim()
+                                .lowercase()
+
+                        if (
+                            ingrediente.isNotEmpty() &&
+                            !ingredients.contains(
+                                ingrediente
+                            )
+                        ) {
 
                             ingredients.add(
-                                newIngredient.trim()
+                                ingrediente
                             )
 
                             newIngredient = ""
@@ -145,8 +154,7 @@ fun IngredientReviewScreen(
 
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = null,
-                        tint = Color(0xFF10B981)
+                        contentDescription = null
                     )
                 }
             }
@@ -161,39 +169,42 @@ fun IngredientReviewScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = Alignment.Center
+
+                    contentAlignment =
+                        Alignment.Center
                 ) {
 
                     Text(
-                        text = "No hay ingredientes detectados.",
-                        color = Color.Gray
+                        text =
+                            "No hay ingredientes agregados."
                     )
                 }
 
             } else {
 
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                    modifier =
+                        Modifier.weight(1f),
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(8.dp)
+
                 ) {
 
                     items(ingredients) { ingredient ->
 
                         Card(
-
-                            modifier = Modifier.fillMaxWidth(),
-
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF1E293B)
-                            )
-
+                            modifier =
+                                Modifier.fillMaxWidth()
                         ) {
 
                             Row(
 
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
 
                                 verticalAlignment =
                                     Alignment.CenterVertically,
@@ -211,31 +222,35 @@ fun IngredientReviewScreen(
                                     Icon(
                                         Icons.Default.Restaurant,
                                         contentDescription = null,
-                                        tint = Color(0xFF10B981)
+                                        tint =
+                                            MaterialTheme.colorScheme.primary
                                     )
 
                                     Spacer(
-                                        modifier = Modifier.width(12.dp)
+                                        modifier =
+                                            Modifier.width(12.dp)
                                     )
 
                                     Text(
-                                        text = ingredient,
-                                        color = Color.White
+                                        text = ingredient
                                     )
                                 }
 
                                 IconButton(
+
                                     onClick = {
+
                                         ingredients.remove(
                                             ingredient
                                         )
                                     }
+
                                 ) {
 
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Eliminar",
-                                        tint = Color.Red
+                                        contentDescription =
+                                            "Eliminar"
                                     )
                                 }
                             }
@@ -245,7 +260,27 @@ fun IngredientReviewScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(8.dp)
+            )
+
+            OutlinedButton(
+
+                onClick = {
+
+                    ingredients.clear()
+                },
+
+                modifier = Modifier.fillMaxWidth()
+
+            ) {
+
+                Text(
+                    "Limpiar Lista"
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
             )
 
             Button(
@@ -257,19 +292,28 @@ fun IngredientReviewScreen(
                     )
                 },
 
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                enabled =
+                    ingredients.isNotEmpty(),
 
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF10B981)
-                )
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
 
             ) {
 
+                Icon(
+                    Icons.Default.Restaurant,
+                    contentDescription = null
+                )
+
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
                 Text(
-                    text = "Buscar Recetas",
-                    color = Color.White,
+                    text =
+                        "Buscar (${ingredients.size}) Ingredientes",
                     fontWeight = FontWeight.Bold
                 )
             }

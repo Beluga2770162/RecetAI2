@@ -4,10 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ContactSupport
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -30,59 +29,91 @@ fun ProfileScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToTerms: () -> Unit,
-    onNavigateToContact: () -> Unit
+    onNavigateToContact: () -> Unit,
+    favoriteCount: Int = 0,
+    historyCount: Int = 0
 ) {
 
-    val user = FirebaseAuth.getInstance().currentUser
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
 
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment =
+            Alignment.CenterHorizontally
     ) {
 
-        // PERFIL
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.primaryContainer
+            )
         ) {
 
             Column(
-                modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
             ) {
 
                 Icon(
-                    Icons.Default.Person,
+                    imageVector = Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(90.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
 
                 Text(
-                    text = user?.displayName ?: "Invitado",
+                    text =
+                        user?.displayName
+                            ?: "Usuario Invitado",
+
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
 
                 Text(
-                    text = user?.email ?: "Sin correo registrado"
+                    text =
+                        user?.email
+                            ?: "Sin correo registrado"
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text("Cuenta Activa")
+                    }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
 
-        // ESTADÍSTICAS
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(8.dp)
         ) {
 
             Card(
@@ -91,7 +122,8 @@ fun ProfileScreen(
 
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
                 ) {
 
                     Icon(
@@ -99,10 +131,14 @@ fun ProfileScreen(
                         contentDescription = null
                     )
 
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
                     Text(
-                        "0",
+                        text = favoriteCount.toString(),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 22.sp
                     )
 
                     Text("Favoritos")
@@ -115,7 +151,8 @@ fun ProfileScreen(
 
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
                 ) {
 
                     Icon(
@@ -123,10 +160,14 @@ fun ProfileScreen(
                         contentDescription = null
                     )
 
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
                     Text(
-                        "0",
+                        text = historyCount.toString(),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 22.sp
                     )
 
                     Text("Recetas")
@@ -134,64 +175,20 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // CUENTA
-        Text(
-            text = "Cuenta",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.fillMaxWidth()
+        Spacer(
+            modifier = Modifier.height(24.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Button(
-                onClick = onNavigateToLogin,
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Icon(
-                    Icons.Default.Lock,
-                    contentDescription = null
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Login")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedButton(
-                onClick = onNavigateToRegister,
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Registro")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // PREFERENCIAS
         Text(
             text = "Preferencias",
-            style = MaterialTheme.typography.titleMedium,
+            style =
+                MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -202,7 +199,8 @@ fun ProfileScreen(
             ) {
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment =
+                        Alignment.CenterVertically
                 ) {
 
                     Icon(
@@ -210,75 +208,96 @@ fun ProfileScreen(
                         contentDescription = null
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(
+                        modifier = Modifier.width(12.dp)
+                    )
 
                     Text(
-                        "Tema Oscuro",
-                        modifier = Modifier.weight(1f)
+                        text = "Modo Oscuro",
+                        modifier =
+                            Modifier.weight(1f)
                     )
 
                     Switch(
                         checked = isDarkMode,
-                        onCheckedChange = onThemeChanged
+                        onCheckedChange =
+                            onThemeChanged
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Text(
+                    text = "Idioma",
+                    fontWeight = FontWeight.Bold
+                )
 
-                    Icon(
-                        Icons.Default.Info,
-                        contentDescription = null
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                Row {
+
+                    FilterChip(
+                        selected =
+                            currentLanguage == "es",
+                        onClick = {
+                            onLanguageChanged("es")
+                        },
+                        label = {
+                            Text("ES")
+                        }
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Text(
-                        "Idioma",
-                        modifier = Modifier.weight(1f)
+                    Spacer(
+                        modifier = Modifier.width(6.dp)
                     )
 
-                    Row {
+                    FilterChip(
+                        selected =
+                            currentLanguage == "en",
+                        onClick = {
+                            onLanguageChanged("en")
+                        },
+                        label = {
+                            Text("EN")
+                        }
+                    )
 
-                        FilterChip(
-                            selected = currentLanguage == "es",
-                            onClick = { onLanguageChanged("es") },
-                            label = { Text("ES") }
-                        )
+                    Spacer(
+                        modifier = Modifier.width(6.dp)
+                    )
 
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        FilterChip(
-                            selected = currentLanguage == "en",
-                            onClick = { onLanguageChanged("en") },
-                            label = { Text("EN") }
-                        )
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        FilterChip(
-                            selected = currentLanguage == "pt",
-                            onClick = { onLanguageChanged("pt") },
-                            label = { Text("PT") }
-                        )
-                    }
+                    FilterChip(
+                        selected =
+                            currentLanguage == "pt",
+                        onClick = {
+                            onLanguageChanged("pt")
+                        },
+                        label = {
+                            Text("PT")
+                        }
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(
+            modifier = Modifier.height(24.dp)
+        )
 
-        // SOPORTE
         Text(
-            text = "Soporte",
-            style = MaterialTheme.typography.titleMedium,
+            text = "Información",
+            style =
+                MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
 
         OutlinedButton(
             onClick = onNavigateToTerms,
@@ -286,16 +305,22 @@ fun ProfileScreen(
         ) {
 
             Icon(
-                Icons.Default.Lock,
+                Icons.Default.Info,
                 contentDescription = null
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(
+                modifier = Modifier.width(8.dp)
+            )
 
-            Text("Términos y Condiciones")
+            Text(
+                "Términos y Condiciones"
+            )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
 
         OutlinedButton(
             onClick = onNavigateToContact,
@@ -303,20 +328,58 @@ fun ProfileScreen(
         ) {
 
             Icon(
-                Icons.Default.Email,
+                Icons.Default.ContactSupport,
                 contentDescription = null
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(
+                modifier = Modifier.width(8.dp)
+            )
 
-            Text("Contacto")
+            Text("Centro de Ayuda")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Button(
+
+            onClick = {
+
+                FirebaseAuth
+                    .getInstance()
+                    .signOut()
+
+                onNavigateToLogin()
+            },
+
+            modifier = Modifier.fillMaxWidth(),
+
+            colors = ButtonDefaults.buttonColors(
+                containerColor =
+                    MaterialTheme.colorScheme.error
+            )
+
+        ) {
+
+            Icon(
+                Icons.Default.Logout,
+                contentDescription = null
+            )
+
+            Spacer(
+                modifier = Modifier.width(8.dp)
+            )
+
+            Text("Cerrar Sesión")
+        }
 
         Text(
             text = "RecetAI v1.0",
-            style = MaterialTheme.typography.bodySmall
+            style =
+                MaterialTheme.typography.bodySmall
         )
     }
+
 }

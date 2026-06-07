@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
 
 data class RecipeHome(
     val id: String,
@@ -25,6 +26,7 @@ data class RecipeHome(
     val description: String,
     val time: String
 )
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -35,6 +37,15 @@ fun HomeScreen(
 
     val recipes by viewModel.recipes.collectAsState()
 
+    val favoriteCount by
+    viewModel.favoriteCount.collectAsState()
+
+    val historyCount by
+    viewModel.historyCount.collectAsState()
+
+    val user =
+        FirebaseAuth.getInstance().currentUser
+
     Scaffold(
 
         topBar = {
@@ -42,6 +53,7 @@ fun HomeScreen(
             TopAppBar(
 
                 title = {
+
                     Text(
                         text = "RecetAI",
                         fontWeight = FontWeight.Bold
@@ -74,12 +86,11 @@ fun HomeScreen(
 
         ) {
 
-            // BIENVENIDA
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor =
+                        MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
 
@@ -88,7 +99,7 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "👋 Bienvenido a RecetAI",
+                        text = "👋 Hola ${user?.displayName ?: "Chef"}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -98,7 +109,7 @@ fun HomeScreen(
                     )
 
                     Text(
-                        text = "Descubre recetas utilizando ingredientes detectados por la cámara."
+                        text = "Descubre nuevas recetas con los ingredientes que tienes en casa."
                     )
                 }
             }
@@ -107,50 +118,56 @@ fun HomeScreen(
                 modifier = Modifier.height(16.dp)
             )
 
-            // ESTADISTICAS
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                Card(
+                StatCard(
+                    value = recipes.size.toString(),
+                    label = "Recetas",
                     modifier = Modifier.weight(1f)
-                ) {
+                )
 
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Text(
-                            text = recipes.size.toString(),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
-
-                        Text("Recetas")
-                    }
-                }
-
-                Card(
+                StatCard(
+                    value = favoriteCount.toString(),
+                    label = "Favoritos",
                     modifier = Modifier.weight(1f)
-                ) {
+                )
 
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                StatCard(
+                    value = historyCount.toString(),
+                    label = "Historial",
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-                        Text(
-                            text = "0",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
 
-                        Text("Favoritos")
-                    }
-                }
+            Button(
+
+                onClick = onNavigateToScan,
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp)
+
+            ) {
+
+                Icon(
+                    Icons.Default.CameraAlt,
+                    contentDescription = null
+                )
+
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+
+                Text(
+                    "Escanear Ingredientes"
+                )
             }
 
             Spacer(
@@ -158,8 +175,9 @@ fun HomeScreen(
             )
 
             Text(
-                text = "Sugerencias para hoy",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Recetas Disponibles",
+                style =
+                    MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
@@ -173,11 +191,14 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = Alignment.Center
+
+                    contentAlignment =
+                        Alignment.Center
                 ) {
 
                     Text(
-                        text = "No hay recetas disponibles."
+                        text =
+                            "No hay recetas disponibles."
                     )
                 }
 
@@ -185,117 +206,22 @@ fun HomeScreen(
 
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement =
+                        Arrangement.spacedBy(12.dp)
                 ) {
 
                     items(recipes) { recipe ->
 
-                        RecipeHomeCard(recipe)
-                    }
-                }
-            }
+                        RecipeHomeCard(
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+                            recipe = recipe,
 
-            Button(
-                onClick = onNavigateToScan,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-            ) {
+                            onFavoriteClick = {
 
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null
-                )
-
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
-
-                Text(
-                    text = "Abrir Cámara",
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-    @Composable
-    fun RecipeHomeCard(
-        recipe: RecipeHome
-    ) {
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(
-                    modifier = Modifier.width(16.dp)
-                )
-
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-
-                    Text(
-                        text = recipe.title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(4.dp)
-                    )
-
-                    Text(
-                        text = recipe.description,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-
-                        Spacer(
-                            modifier = Modifier.width(4.dp)
-                        )
-
-                        Text(
-                            text = recipe.time,
-                            style = MaterialTheme.typography.bodySmall
+                                viewModel.addFavorite(
+                                    recipe
+                                )
+                            }
                         )
                     }
                 }
@@ -305,83 +231,106 @@ fun HomeScreen(
 }
 
 @Composable
+fun StatCard(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+
+    Card(
+        modifier = modifier
+    ) {
+
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = value,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            )
+
+            Text(label)
+        }
+    }
+}
+
+@Composable
 fun RecipeHomeCard(
-    recipe: RecipeHome
+    recipe: RecipeHome,
+    onFavoriteClick: () -> Unit
 ) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
     ) {
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
 
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(
-                modifier = Modifier.width(16.dp)
-            )
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
 
                 Text(
                     text = recipe.title,
+                    modifier = Modifier.weight(1f),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = recipe.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                IconButton(
+                    onClick =
+                        onFavoriteClick
                 ) {
 
                     Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-
-                    Spacer(
-                        modifier = Modifier.width(4.dp)
-                    )
-
-                    Text(
-                        text = recipe.time,
-                        style = MaterialTheme.typography.bodySmall
+                        Icons.Default.Star,
+                        contentDescription =
+                            "Favorito"
                     )
                 }
+            }
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = recipe.description
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Row(
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+
+                Spacer(
+                    modifier = Modifier.width(4.dp)
+                )
+
+                Text(recipe.time)
             }
         }
     }
 }
+
 

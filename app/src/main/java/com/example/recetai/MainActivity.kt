@@ -21,20 +21,25 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.recetai.ui.theme.RecetAITheme
 import java.util.Locale
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Favorite
 
-object AppScreen {
+object Route {
+
     const val SPLASH = "splash"
-    const val HOME = "home"
-    const val SCAN = "scan"
-    const val PROFILE = "profile"
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val TERMS = "terms"
+    const val HOME = "home"
+    const val RECIPE_RESULTS = "recipe_results"
+    const val PROFILE = "profile"
     const val CONTACT = "contact"
+    const val SCAN = "scan"
+    const val TERMS = "terms"
 
-    const val FAVORITES = "favorites"
+    const val INGREDIENT_REVIEW = "ingredient_review"
+    const val FORGOTPASSWORD = "forgot_password"
+    const val SETTINGS = "settings"
+    const val HELP = "help"
+    const val STATS = "stats"
+    const val RATING = "rating"
 }
 
 class MainActivity : ComponentActivity() {
@@ -72,6 +77,21 @@ class MainActivity : ComponentActivity() {
 
             Locale.setDefault(locale)
 
+            val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
+            var scannedIngredients by remember {
+
+                mutableStateOf<List<String>>(
+                    emptyList()
+                )
+            }
+
+            val favoriteCount by
+            homeViewModel.favoriteCount.collectAsState()
+
+            val historyCount by
+            homeViewModel.historyCount.collectAsState()
+
             val configuration =
                 LocalConfiguration.current
 
@@ -105,19 +125,19 @@ class MainActivity : ComponentActivity() {
                     bottomBar = {
 
                         if (
-                            currentDestination != AppScreen.LOGIN &&
-                            currentDestination != AppScreen.REGISTER &&
-                            currentDestination != AppScreen.SPLASH
+                            currentDestination != Route.LOGIN &&
+                            currentDestination != Route.REGISTER &&
+                            currentDestination != Route.SPLASH
                         ) {
 
                             NavigationBar {
 
                                 NavigationBarItem(
                                     selected =
-                                        currentDestination == AppScreen.HOME,
+                                        currentDestination == Route.HOME,
                                     onClick = {
                                         navController.navigate(
-                                            AppScreen.HOME
+                                            Route.HOME
                                         )
                                     },
                                     icon = {
@@ -133,10 +153,10 @@ class MainActivity : ComponentActivity() {
 
                                 NavigationBarItem(
                                     selected =
-                                        currentDestination == AppScreen.SCAN,
+                                        currentDestination == Route.SCAN,
                                     onClick = {
                                         navController.navigate(
-                                            AppScreen.SCAN
+                                            Route.SCAN
                                         )
                                     },
                                     icon = {
@@ -152,10 +172,10 @@ class MainActivity : ComponentActivity() {
 
                                 NavigationBarItem(
                                     selected =
-                                        currentDestination == AppScreen.PROFILE,
+                                        currentDestination == Route.PROFILE,
                                     onClick = {
                                         navController.navigate(
-                                            AppScreen.PROFILE
+                                            Route.PROFILE
                                         )
                                     },
                                     icon = {
@@ -172,29 +192,27 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                ) { innerPadding ->
-
-                    NavHost(
+                ) { innerPadding -> NavHost(
                         navController = navController,
-                        startDestination = AppScreen.SPLASH,
+                        startDestination = Route.SPLASH,
                         modifier = Modifier.padding(
                             innerPadding
                         )
                     ) {
 
                         // SPLASH
-                        composable(AppScreen.SPLASH) {
+                        composable(Route.SPLASH) {
 
                             SplashScreen(
 
                                 onNavigateHome = {
 
                                     navController.navigate(
-                                        AppScreen.HOME
+                                        Route.HOME
                                     ) {
 
                                         popUpTo(
-                                            AppScreen.SPLASH
+                                            Route.SPLASH
                                         ) {
                                             inclusive = true
                                         }
@@ -204,11 +222,11 @@ class MainActivity : ComponentActivity() {
                                 onNavigateLogin = {
 
                                     navController.navigate(
-                                        AppScreen.LOGIN
+                                        Route.LOGIN
                                     ) {
 
                                         popUpTo(
-                                            AppScreen.SPLASH
+                                            Route.SPLASH
                                         ) {
                                             inclusive = true
                                         }
@@ -218,29 +236,75 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // HOME
-                        composable(AppScreen.HOME) {
+                        composable(Route.HOME) {
 
                             HomeScreen(
                                 onNavigateToScan = {
                                     navController.navigate(
-                                        AppScreen.SCAN
+                                        Route.SCAN
                                     )
                                 },
                                 onNavigateToProfile = {
                                     navController.navigate(
-                                        AppScreen.PROFILE
+                                        Route.PROFILE
                                     )
                                 }
                             )
                         }
 
+                    // RESULTS
+                    composable(
+                        Route.RECIPE_RESULTS
+                    ) {
+
+                        RecipeResultScreen(
+
+                            recipes =
+                                homeViewModel
+                                    .searchResults
+                                    .collectAsState()
+                                    .value,
+
+                            onFavoriteClick = { recipe ->
+
+                                homeViewModel.addFavorite(
+                                    recipe
+                                )
+                            },
+
+                            onBackHome = {
+
+                                navController.navigate(
+                                    Route.HOME
+                                ) {
+
+                                    popUpTo(
+                                        Route.HOME
+                                    )
+                                }
+                            }
+                        )
+                    }
+
                         // SCAN
-                        composable(AppScreen.SCAN) {
-                            ScanScreen()
-                        }
+                    composable(Route.SCAN) {
+
+                        ScanScreen(
+
+                            onSearchRecipes = { ingredients ->
+
+                                scannedIngredients =
+                                    ingredients
+
+                                navController.navigate(
+                                    Route.INGREDIENT_REVIEW
+                                )
+                            }
+                        )
+                    }
 
                         // PROFILE
-                        composable(AppScreen.PROFILE) {
+                        composable(Route.PROFILE) {
 
                             ProfileScreen(
 
@@ -278,33 +342,45 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNavigateToLogin = {
+
                                     navController.navigate(
-                                        AppScreen.LOGIN
-                                    )
+                                        Route.LOGIN
+                                    ) {
+
+                                        popUpTo(Route.HOME) {
+                                            inclusive = true
+                                        }
+
+                                        launchSingleTop = true
+                                    }
                                 },
 
                                 onNavigateToRegister = {
                                     navController.navigate(
-                                        AppScreen.REGISTER
+                                        Route.REGISTER
                                     )
                                 },
 
                                 onNavigateToTerms = {
                                     navController.navigate(
-                                        AppScreen.TERMS
+                                        Route.TERMS
                                     )
                                 },
 
                                 onNavigateToContact = {
                                     navController.navigate(
-                                        AppScreen.CONTACT
+                                        Route.CONTACT
                                     )
-                                }
+                                },
+
+                                favoriteCount = favoriteCount,
+
+                                historyCount = historyCount
                             )
                         }
 
                         // TERMS
-                        composable(AppScreen.TERMS) {
+                        composable(Route.TERMS) {
 
                             ContratoConElDiablo(
                                 onBack = {
@@ -314,7 +390,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // CONTACT
-                        composable(AppScreen.CONTACT) {
+                        composable(Route.CONTACT) {
 
                             ContactScreen(
                                 onBack = {
@@ -324,49 +400,102 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // LOGIN
-                        composable(AppScreen.LOGIN) {
+                        composable(Route.LOGIN) {
 
                             LoginScreen(
 
                                 onLoginSuccess = {
 
+                                    android.util.Log.d(
+                                        "RECETAI",
+                                        "LOGIN EXITOSO"
+                                    )
+
                                     navController.navigate(
-                                        AppScreen.HOME
+                                        Route.HOME
                                     ) {
 
                                         popUpTo(
-                                            AppScreen.LOGIN
+                                            Route.LOGIN
                                         ) {
                                             inclusive = true
                                         }
+
+                                        launchSingleTop = true
                                     }
                                 },
 
                                 onNavigateToRegister = {
 
                                     navController.navigate(
-                                        AppScreen.REGISTER
+                                        Route.REGISTER
+                                    )
+                                },
+
+                                onNavigateToForgotPassword = {
+
+                                    navController.navigate(
+                                        Route.FORGOTPASSWORD
                                     )
                                 }
                             )
                         }
 
+                        //INGREDIENT_REVIEW
+
+                        composable(
+                            Route.INGREDIENT_REVIEW
+                        ) {
+
+                            IngredientReviewScreen(
+
+                                initialIngredients =
+                                    scannedIngredients,
+
+                                onConfirm = { ingredients ->
+
+                                    homeViewModel
+                                        .findRecipesByIngredients(
+                                            ingredients
+                                        )
+
+                                    navController.navigate(
+                                        Route.RECIPE_RESULTS
+                                    )
+                                }
+                            )
+                        }
+
+                        // LOGIN
+                        composable(
+                            Route.FORGOTPASSWORD
+                        ) {
+
+                            ForgotPasswordScreen(
+
+                                onBack = {
+
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
                         // REGISTER
-                        composable(AppScreen.REGISTER) {
+                        composable(Route.REGISTER) {
 
                             RegisterScreen(
 
                                 onRegisterSuccess = {
 
                                     navController.navigate(
-                                        AppScreen.LOGIN
+                                        Route.LOGIN
                                     )
                                 },
 
                                 onNavigateToLogin = {
 
                                     navController.navigate(
-                                        AppScreen.LOGIN
+                                        Route.LOGIN
                                     )
                                 }
                             )

@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen() {
+fun ScanScreen(
+    onSearchRecipes: (List<String>) -> Unit = {}
+) {
 
     var ingredientName by remember {
         mutableStateOf("")
@@ -36,8 +38,9 @@ fun ScanScreen() {
             TopAppBar(
 
                 title = {
+
                     Text(
-                        "Escanear Ingredientes",
+                        text = "Escáner Inteligente",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -55,32 +58,14 @@ fun ScanScreen() {
 
         ) {
 
-            Text(
-                text = "Escáner Inteligente",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(
-                modifier = Modifier.height(4.dp)
-            )
-
-            Text(
-                text = "Detecta ingredientes y descubre recetas al instante."
-            )
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            // TARJETA DE ESCÁNER
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp),
+
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor =
+                        MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
 
@@ -95,9 +80,10 @@ fun ScanScreen() {
                     ) {
 
                         Icon(
-                            Icons.Default.CameraAlt,
+                            imageVector =
+                                Icons.Default.CameraAlt,
                             contentDescription = null,
-                            modifier = Modifier.size(72.dp)
+                            modifier = Modifier.size(80.dp)
                         )
 
                         Spacer(
@@ -105,9 +91,9 @@ fun ScanScreen() {
                         )
 
                         Text(
-                            text = "Escaneo IA",
+                            text = "CameraX + ML Kit",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontSize = 20.sp
                         )
 
                         Spacer(
@@ -115,19 +101,20 @@ fun ScanScreen() {
                         )
 
                         Text(
-                            text = "Próximamente con CameraX + ML Kit"
+                            text = "Próxima integración de reconocimiento automático"
                         )
                     }
                 }
             }
 
             Spacer(
-                modifier = Modifier.height(24.dp)
+                modifier = Modifier.height(20.dp)
             )
 
             Text(
-                text = "Agregar ingrediente manualmente",
-                style = MaterialTheme.typography.titleMedium,
+                text = "Agregar ingredientes",
+                style =
+                    MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
@@ -136,20 +123,24 @@ fun ScanScreen() {
             )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
 
                 OutlinedTextField(
+
                     value = ingredientName,
+
                     onValueChange = {
                         ingredientName = it
                     },
 
-                    label = {
-                        Text("Ej: Tomate")
-                    },
+                    modifier =
+                        Modifier.weight(1f),
 
-                    modifier = Modifier.weight(1f),
+                    label = {
+                        Text("Ej. Tomate")
+                    },
 
                     singleLine = true
                 )
@@ -163,7 +154,9 @@ fun ScanScreen() {
                     onClick = {
 
                         if (
-                            ingredientName.isNotBlank()
+                            ingredientName
+                                .trim()
+                                .isNotEmpty()
                         ) {
 
                             ingredientList.add(
@@ -184,12 +177,14 @@ fun ScanScreen() {
             }
 
             Spacer(
-                modifier = Modifier.height(20.dp)
+                modifier = Modifier.height(16.dp)
             )
 
             Text(
-                text = "Ingredientes detectados (${ingredientList.size})",
-                style = MaterialTheme.typography.titleMedium,
+                text =
+                    "Ingredientes (${ingredientList.size})",
+                style =
+                    MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
@@ -209,29 +204,36 @@ fun ScanScreen() {
                 ) {
 
                     Text(
-                        text = "Aún no hay ingredientes."
+                        text =
+                            "Agrega ingredientes para comenzar"
                     )
                 }
 
             } else {
 
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
+
+                    modifier =
+                        Modifier.weight(1f),
+
                     verticalArrangement =
                         Arrangement.spacedBy(8.dp)
+
                 ) {
 
-                    items(ingredientList) { item ->
+                    items(ingredientList) { ingredient ->
 
                         Card(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier =
+                                Modifier.fillMaxWidth()
                         ) {
 
                             Row(
 
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
 
                                 verticalAlignment =
                                     Alignment.CenterVertically,
@@ -252,23 +254,28 @@ fun ScanScreen() {
                                     )
 
                                     Spacer(
-                                        modifier = Modifier.width(12.dp)
+                                        modifier =
+                                            Modifier.width(12.dp)
                                     )
 
-                                    Text(item)
+                                    Text(
+                                        text = ingredient
+                                    )
                                 }
 
                                 IconButton(
-
                                     onClick = {
-                                        ingredientList.remove(item)
-                                    }
 
+                                        ingredientList.remove(
+                                            ingredient
+                                        )
+                                    }
                                 ) {
 
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Eliminar"
+                                        contentDescription =
+                                            "Eliminar"
                                     )
                                 }
                             }
@@ -285,15 +292,18 @@ fun ScanScreen() {
 
                 onClick = {
 
-                    // Aquí conectarás IngredientReviewScreen
-                    // y RecipeCerebro
+                    onSearchRecipes(
+                        ingredientList.toList()
+                    )
                 },
 
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                enabled =
+                    ingredientList.isNotEmpty(),
 
-                enabled = ingredientList.isNotEmpty()
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
 
             ) {
 

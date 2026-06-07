@@ -3,65 +3,122 @@ package com.example.recetai
 data class RecipeSuggestion(
     val title: String,
     val description: String,
-    val score: Int
+    val score: Int,
+    val missingIngredients: Int
 )
 
-fun buscarReceta(
-    ingredientes: List<String>
-): RecipeSuggestion {
+object RecipeCerebro {
 
-    val recetas = listOf(
+    private val recetas = listOf(
 
-        Triple(
-            setOf("egg", "milk"),
-            "Omelette Cremoso",
-            "Desayuno rápido"
+        Recipe(
+            title = "Omelette de Queso",
+            description = "Desayuno rápido y nutritivo.",
+            ingredients = listOf(
+                "huevo",
+                "leche",
+                "queso"
+            )
         ),
 
-        Triple(
-            setOf("tomato", "cheese"),
-            "Ensalada Caprese",
-            "Receta fresca"
+        Recipe(
+            title = "Ensalada Caprese",
+            description = "Receta fresca italiana.",
+            ingredients = listOf(
+                "tomate",
+                "queso",
+                "albahaca"
+            )
         ),
 
-        Triple(
-            setOf("bread", "ham", "cheese"),
-            "Sándwich Clásico",
-            "Ideal para cualquier hora"
+        Recipe(
+            title = "Sándwich Clásico",
+            description = "Perfecto para cualquier hora.",
+            ingredients = listOf(
+                "pan",
+                "jamon",
+                "queso"
+            )
+        ),
+
+        Recipe(
+            title = "Guacamole",
+            description = "Ideal para botanas.",
+            ingredients = listOf(
+                "aguacate",
+                "cebolla",
+                "tomate",
+                "limon"
+            )
+        ),
+
+        Recipe(
+            title = "Pasta Alfredo",
+            description = "Pasta cremosa italiana.",
+            ingredients = listOf(
+                "pasta",
+                "crema",
+                "queso"
+            )
+        ),
+
+        Recipe(
+            title = "Tacos de Pollo",
+            description = "Receta mexicana tradicional.",
+            ingredients = listOf(
+                "pollo",
+                "tortilla",
+                "cebolla"
+            )
         )
     )
 
-    var mejorReceta: RecipeSuggestion? = null
+    fun buscarRecetas(
+        ingredientesUsuario: List<String>
+    ): List<RecipeSuggestion> {
 
-    var mejorPuntaje = 0
+        if (ingredientesUsuario.isEmpty()) {
+            return emptyList()
+        }
 
-    for ((ingredientesReceta, titulo, descripcion) in recetas) {
+        val ingredientesNormalizados =
+            ingredientesUsuario.map {
+                it.trim().lowercase()
+            }
 
-        val coincidencias =
-            ingredientes.count {
+        return recetas.map { receta ->
 
-                ingredientesReceta.contains(
-                    it.lowercase()
+            val coincidencias = receta.ingredients.count {
+
+                    ingredienteReceta ->
+
+                ingredientesNormalizados.contains(
+                    ingredienteReceta.lowercase()
                 )
             }
 
-        if (coincidencias > mejorPuntaje) {
-
-            mejorPuntaje = coincidencias
-
-            mejorReceta =
-                RecipeSuggestion(
-                    title = titulo,
-                    description = descripcion,
-                    score = coincidencias
-                )
+            RecipeSuggestion(
+                title = receta.title,
+                description = receta.description,
+                score = coincidencias,
+                missingIngredients =
+                    receta.ingredients.size - coincidencias
+            )
         }
+            .filter {
+                it.score > 0
+            }
+            .sortedByDescending {
+                it.score
+            }
     }
 
-    return mejorReceta
-        ?: RecipeSuggestion(
-            "Sin coincidencias",
-            "Agrega más ingredientes",
-            0
-        )
+    fun mejorReceta(
+        ingredientesUsuario: List<String>
+    ): RecipeSuggestion? {
+
+        return buscarRecetas(
+            ingredientesUsuario
+        ).firstOrNull()
+    }
 }

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "880735627402-blurl7325ib3tcfm9ppilq29bitc1bth.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.recetai",
+            "certificate_hash": "99744cee34409bbf086ffc32eb62b8a6fe974477"
+          }
+        },
+        {
           "client_id": "880735627402-heb21q57liltaj929if5v0r61r7l4a4u.apps.googleusercontent.com",
           "client_type": 3
         }

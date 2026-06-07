@@ -4,7 +4,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -23,13 +28,26 @@ import com.google.firebase.auth.GoogleAuthProvider
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit
 ) {
 
     val context = LocalContext.current
 
     val auth = remember {
         FirebaseAuth.getInstance()
+    }
+
+    var email by remember {
+        mutableStateOf("")
+    }
+
+    var password by remember {
+        mutableStateOf("")
+    }
+
+    var errorMessage by remember {
+        mutableStateOf("")
     }
 
     var isLoading by remember {
@@ -66,10 +84,9 @@ fun LoginScreen(
             )
         }
 
-    val googleSignInLauncher =
+    val googleLauncher =
         rememberLauncherForActivityResult(
-            contract =
-                ActivityResultContracts.StartActivityForResult()
+            ActivityResultContracts.StartActivityForResult()
         ) { result ->
 
             val task =
@@ -84,45 +101,36 @@ fun LoginScreen(
                         ApiException::class.java
                     )
 
-                account?.idToken?.let { idToken ->
-
-                    val credential =
-                        GoogleAuthProvider.getCredential(
-                            idToken,
-                            null
-                        )
-
-                    auth.signInWithCredential(
-                        credential
+                val credential =
+                    GoogleAuthProvider.getCredential(
+                        account.idToken,
+                        null
                     )
-                        .addOnSuccessListener {
 
-                            isLoading = false
+                auth.signInWithCredential(
+                    credential
+                )
+                    .addOnSuccessListener {
 
-                            onLoginSuccess()
-                        }
+                        isLoading = false
 
-                        .addOnFailureListener { e ->
+                        onLoginSuccess()
+                    }
 
-                            isLoading = false
+                    .addOnFailureListener {
 
-                            Toast.makeText(
-                                context,
-                                "Error: ${e.localizedMessage}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                }
+                        isLoading = false
 
-            } catch (e: ApiException) {
+                        Toast.makeText(
+                            context,
+                            "Error de autenticación",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+            } catch (_: Exception) {
 
                 isLoading = false
-
-                Toast.makeText(
-                    context,
-                    "Error Google: ${e.statusCode}",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
         }
 
@@ -130,17 +138,22 @@ fun LoginScreen(
 
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(24.dp),
 
-        verticalArrangement = Arrangement.Center,
-
         horizontalAlignment =
-            Alignment.CenterHorizontally
+            Alignment.CenterHorizontally,
+
+        verticalArrangement =
+            Arrangement.Center
 
     ) {
 
         Icon(
-            imageVector = Icons.Default.Restaurant,
+            imageVector =
+                Icons.Default.Restaurant,
             contentDescription = null,
             modifier = Modifier.size(90.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -153,8 +166,7 @@ fun LoginScreen(
         Text(
             text = "RecetAI",
             fontSize = 34.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            fontWeight = FontWeight.Bold
         )
 
         Spacer(
@@ -162,76 +174,134 @@ fun LoginScreen(
         )
 
         Text(
-            text = "Tu cocina inteligente",
-            style = MaterialTheme.typography.bodyLarge
+            text = "Tu cocina inteligente"
         )
 
         Spacer(
             modifier = Modifier.height(32.dp)
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth()
+        OutlinedTextField(
+
+            value = email,
+
+            onValueChange = {
+                email = it
+            },
+
+            label = {
+                Text("Correo")
+            },
+
+            leadingIcon = {
+
+                Icon(
+                    Icons.Default.Email,
+                    contentDescription = null
+                )
+            },
+
+            modifier = Modifier.fillMaxWidth(),
+
+            singleLine = true
+        )
+
+        Spacer(
+            modifier = Modifier.height(12.dp)
+        )
+
+        OutlinedTextField(
+
+            value = password,
+
+            onValueChange = {
+                password = it
+            },
+
+            label = {
+                Text("Contraseña")
+            },
+
+            leadingIcon = {
+
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = null
+                )
+            },
+
+            visualTransformation =
+                PasswordVisualTransformation(),
+
+            modifier = Modifier.fillMaxWidth(),
+
+            singleLine = true
+        )
+
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
+
+        Button(
+
+            onClick = {
+
+                if (
+                    email.isBlank() ||
+                    password.isBlank()
+                ) {
+
+                    errorMessage =
+                        "Completa todos los campos"
+
+                    return@Button
+                }
+
+                isLoading = true
+
+                auth.signInWithEmailAndPassword(
+                    email.trim(),
+                    password.trim()
+                )
+
+                    .addOnSuccessListener {
+
+                        isLoading = false
+
+                        onLoginSuccess()
+                    }
+
+                    .addOnFailureListener {
+
+                        isLoading = false
+
+                        errorMessage =
+                            it.localizedMessage
+                                ?: "Error al iniciar sesión"
+                    }
+            },
+
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+
         ) {
 
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-
-                Text(
-                    text = "📷 Detecta ingredientes automáticamente"
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                Text(
-                    text = "🍅 Reconoce alimentos usando la cámara"
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                Text(
-                    text = "🤖 Obtén recetas sugeridas por IA"
-                )
-            }
+            Text(
+                "Iniciar Sesión"
+            )
         }
 
-        Spacer(
-            modifier = Modifier.height(32.dp)
-        )
+        if (errorMessage.isNotEmpty()) {
 
-        if (isLoading) {
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
-            CircularProgressIndicator()
-
-        } else {
-
-            Button(
-
-                onClick = {
-
-                    isLoading = true
-
-                    googleSignInLauncher.launch(
-                        googleSignInClient.signInIntent
-                    )
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-
-            ) {
-
-                Text(
-                    text = "Continuar con Google",
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         Spacer(
@@ -239,22 +309,67 @@ fun LoginScreen(
         )
 
         TextButton(
-            onClick = onNavigateToRegister
+            onClick =
+                onNavigateToForgotPassword
         ) {
 
             Text(
-                text = "¿No tienes cuenta? Regístrate"
+                "¿Olvidaste tu contraseña?"
             )
         }
 
         Spacer(
-            modifier = Modifier.height(24.dp)
+            modifier = Modifier.height(8.dp)
         )
 
-        Text(
-            text = "Al continuar aceptas nuestros términos y condiciones.",
-            style = MaterialTheme.typography.bodySmall
+        HorizontalDivider()
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
         )
+
+        OutlinedButton(
+
+            onClick = {
+
+                isLoading = true
+
+                googleLauncher.launch(
+                    googleSignInClient.signInIntent
+                )
+            },
+
+            modifier = Modifier.fillMaxWidth()
+
+        ) {
+
+            Text(
+                "Continuar con Google"
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        TextButton(
+            onClick =
+                onNavigateToRegister
+        ) {
+
+            Text(
+                "¿No tienes cuenta? Regístrate"
+            )
+        }
+
+        if (isLoading) {
+
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            CircularProgressIndicator()
+        }
     }
-
 }
+
