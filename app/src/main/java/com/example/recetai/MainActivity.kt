@@ -1,508 +1,124 @@
 package com.example.recetai
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.recetai.navigation.Route
+import com.example.recetai.navigation.SetupNavGraph
+import com.example.recetai.ui.home.HomeViewModel
 import com.example.recetai.ui.theme.RecetAITheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.Locale
-
-object Route {
-
-    const val SPLASH = "splash"
-    const val LOGIN = "login"
-    const val REGISTER = "register"
-    const val HOME = "home"
-    const val RECIPE_RESULTS = "recipe_results"
-    const val PROFILE = "profile"
-    const val CONTACT = "contact"
-    const val SCAN = "scan"
-    const val TERMS = "terms"
-
-    const val INGREDIENT_REVIEW = "ingredient_review"
-    const val FORGOTPASSWORD = "forgot_password"
-    const val SETTINGS = "settings"
-    const val HELP = "help"
-    const val STATS = "stats"
-    const val RATING = "rating"
-}
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sharedPref =
-            getSharedPreferences(
-                "RecetAI_Prefs",
-                Context.MODE_PRIVATE
-            )
+        val sharedPref = getSharedPreferences("RecetAI_Prefs", Context.MODE_PRIVATE)
+
+        // Aplicar idioma guardado antes de que cargue la UI
+        val savedLanguage = sharedPref.getString("language", "es") ?: "es"
+        setAppLanguage(this, savedLanguage)
 
         setContent {
-
             var darkThemeEnabled by rememberSaveable {
-                mutableStateOf(
-                    sharedPref.getBoolean(
-                        "isDarkMode",
-                        true
-                    )
-                )
+                mutableStateOf(sharedPref.getBoolean("isDarkMode", true))
             }
-
             var currentLanguage by rememberSaveable {
-                mutableStateOf(
-                    sharedPref.getString(
-                        "language",
-                        "es"
-                    ) ?: "es"
-                )
+                mutableStateOf(savedLanguage)
             }
 
-            val locale = Locale(currentLanguage)
+            val homeViewModel: HomeViewModel = viewModel()
 
-            Locale.setDefault(locale)
-
-            val homeViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-
-            var scannedIngredients by remember {
-
-                mutableStateOf<List<String>>(
-                    emptyList()
-                )
+            // Carga inicial de datos desde el archivo JSON local
+            LaunchedEffect(Unit) {
+                try {
+                    val jsonString = application.resources.openRawResource(R.raw.recetas)
+                        .bufferedReader().use { it.readText() }
+                    homeViewModel.inicializarBaseDeDatos(jsonString)
+                } catch (e: Exception) {
+                    // Manejo silencioso o log de error si no existe el archivo
+                }
             }
 
-            val favoriteCount by
-            homeViewModel.favoriteCount.collectAsState()
-
-            val historyCount by
-            homeViewModel.historyCount.collectAsState()
-
-            val configuration =
-                LocalConfiguration.current
-
-            configuration.setLocale(locale)
-
-            val resources =
-                LocalContext.current.resources
-
-            resources.updateConfiguration(
-                configuration,
-                resources.displayMetrics
-            )
-
-            RecetAITheme(
-                darkTheme = darkThemeEnabled
-            ) {
-
-                val navController =
-                    rememberNavController()
-
-                val navBackStackEntry by
-                navController.currentBackStackEntryAsState()
-
-                val currentDestination =
-                    navBackStackEntry
-                        ?.destination
-                        ?.route
+            RecetAITheme(darkTheme = darkThemeEnabled) {
+                val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
                 Scaffold(
-
                     bottomBar = {
-
-                        if (
-                            currentDestination != Route.LOGIN &&
-                            currentDestination != Route.REGISTER &&
-                            currentDestination != Route.SPLASH
-                        ) {
-
+                        val hideBottomBar = currentRoute in listOf(Route.LOGIN, Route.REGISTER, Route.SPLASH)
+                        if (!hideBottomBar) {
                             NavigationBar {
-
-                                NavigationBarItem(
-                                    selected =
-                                        currentDestination == Route.HOME,
-                                    onClick = {
-                                        navController.navigate(
-                                            Route.HOME
-                                        )
-                                    },
-                                    icon = {
-                                        Icon(
-                                            Icons.Default.Home,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    label = {
-                                        Text("Inicio")
-                                    }
+                                val items = listOf(
+                                    Triple(R.string.home, Icons.Default.Home, Route.HOME),
+                                    Triple(R.string.inventory, Icons.Default.Inventory, Route.INVENTORY),
+                                    Triple(R.string.scan, Icons.Default.Add, Route.SCAN),
+                                    Triple(R.string.favorites, Icons.Default.Favorite, Route.FAVORITES),
+                                    Triple(R.string.profile, Icons.Default.Person, Route.PROFILE)
                                 )
 
-                                NavigationBarItem(
-                                    selected =
-                                        currentDestination == Route.SCAN,
-                                    onClick = {
-                                        navController.navigate(
-                                            Route.SCAN
-                                        )
-                                    },
-                                    icon = {
-                                        Icon(
-                                            Icons.Default.Add,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    label = {
-                                        Text("Escanear")
-                                    }
-                                )
-
-                                NavigationBarItem(
-                                    selected =
-                                        currentDestination == Route.PROFILE,
-                                    onClick = {
-                                        navController.navigate(
-                                            Route.PROFILE
-                                        )
-                                    },
-                                    icon = {
-                                        Icon(
-                                            Icons.Default.Person,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    label = {
-                                        Text("Perfil")
-                                    }
-                                )
+                                items.forEach { (labelRes, icon, route) ->
+                                    NavigationBarItem(
+                                        selected = currentRoute == route,
+                                        onClick = {
+                                            navController.navigate(route) {
+                                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        },
+                                        icon = { Icon(icon, contentDescription = stringResource(id = labelRes)) },
+                                        label = {
+                                            if (currentRoute == route) {
+                                                Text(stringResource(id = labelRes), style = MaterialTheme.typography.labelSmall)
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
-
-                ) { innerPadding -> NavHost(
+                ) { innerPadding ->
+                    SetupNavGraph(
                         navController = navController,
-                        startDestination = Route.SPLASH,
-                        modifier = Modifier.padding(
-                            innerPadding
-                        )
-                    ) {
-
-                        // SPLASH
-                        composable(Route.SPLASH) {
-
-                            SplashScreen(
-
-                                onNavigateHome = {
-
-                                    navController.navigate(
-                                        Route.HOME
-                                    ) {
-
-                                        popUpTo(
-                                            Route.SPLASH
-                                        ) {
-                                            inclusive = true
-                                        }
-                                    }
-                                },
-
-                                onNavigateLogin = {
-
-                                    navController.navigate(
-                                        Route.LOGIN
-                                    ) {
-
-                                        popUpTo(
-                                            Route.SPLASH
-                                        ) {
-                                            inclusive = true
-                                        }
-                                    }
-                                }
-                            )
+                        innerPadding = innerPadding,
+                        homeViewModel = homeViewModel,
+                        darkThemeEnabled = darkThemeEnabled,
+                        onThemeChanged = {
+                            darkThemeEnabled = it
+                            sharedPref.edit().putBoolean("isDarkMode", it).apply()
+                        },
+                        currentLanguage = currentLanguage,
+                        onLanguageChanged = { code ->
+                            currentLanguage = code
+                            sharedPref.edit().putString("language", code).apply()
+                            setAppLanguage(this@MainActivity, code)
+                            recreate() // Reinicia la actividad para aplicar el cambio de idioma
                         }
-
-                        // HOME
-                        composable(Route.HOME) {
-
-                            HomeScreen(
-                                onNavigateToScan = {
-                                    navController.navigate(
-                                        Route.SCAN
-                                    )
-                                },
-                                onNavigateToProfile = {
-                                    navController.navigate(
-                                        Route.PROFILE
-                                    )
-                                }
-                            )
-                        }
-
-                    // RESULTS
-                    composable(
-                        Route.RECIPE_RESULTS
-                    ) {
-
-                        RecipeResultScreen(
-
-                            recipes =
-                                homeViewModel
-                                    .searchResults
-                                    .collectAsState()
-                                    .value,
-
-                            onFavoriteClick = { recipe ->
-
-                                homeViewModel.addFavorite(
-                                    recipe
-                                )
-                            },
-
-                            onBackHome = {
-
-                                navController.navigate(
-                                    Route.HOME
-                                ) {
-
-                                    popUpTo(
-                                        Route.HOME
-                                    )
-                                }
-                            }
-                        )
-                    }
-
-                        // SCAN
-                    composable(Route.SCAN) {
-
-                        ScanScreen(
-
-                            onSearchRecipes = { ingredients ->
-
-                                scannedIngredients =
-                                    ingredients
-
-                                navController.navigate(
-                                    Route.INGREDIENT_REVIEW
-                                )
-                            }
-                        )
-                    }
-
-                        // PROFILE
-                        composable(Route.PROFILE) {
-
-                            ProfileScreen(
-
-                                isDarkMode = darkThemeEnabled,
-
-                                onThemeChanged = { nuevo ->
-
-                                    darkThemeEnabled =
-                                        nuevo
-
-                                    sharedPref.edit()
-                                        .putBoolean(
-                                            "isDarkMode",
-                                            nuevo
-                                        )
-                                        .apply()
-                                },
-
-                                currentLanguage =
-                                    currentLanguage,
-
-                                onLanguageChanged = { lang ->
-
-                                    currentLanguage =
-                                        lang
-
-                                    sharedPref.edit()
-                                        .putString(
-                                            "language",
-                                            lang
-                                        )
-                                        .apply()
-
-                                    recreate()
-                                },
-
-                                onNavigateToLogin = {
-
-                                    navController.navigate(
-                                        Route.LOGIN
-                                    ) {
-
-                                        popUpTo(Route.HOME) {
-                                            inclusive = true
-                                        }
-
-                                        launchSingleTop = true
-                                    }
-                                },
-
-                                onNavigateToRegister = {
-                                    navController.navigate(
-                                        Route.REGISTER
-                                    )
-                                },
-
-                                onNavigateToTerms = {
-                                    navController.navigate(
-                                        Route.TERMS
-                                    )
-                                },
-
-                                onNavigateToContact = {
-                                    navController.navigate(
-                                        Route.CONTACT
-                                    )
-                                },
-
-                                favoriteCount = favoriteCount,
-
-                                historyCount = historyCount
-                            )
-                        }
-
-                        // TERMS
-                        composable(Route.TERMS) {
-
-                            ContratoConElDiablo(
-                                onBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        // CONTACT
-                        composable(Route.CONTACT) {
-
-                            ContactScreen(
-                                onBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        // LOGIN
-                        composable(Route.LOGIN) {
-
-                            LoginScreen(
-
-                                onLoginSuccess = {
-
-                                    android.util.Log.d(
-                                        "RECETAI",
-                                        "LOGIN EXITOSO"
-                                    )
-
-                                    navController.navigate(
-                                        Route.HOME
-                                    ) {
-
-                                        popUpTo(
-                                            Route.LOGIN
-                                        ) {
-                                            inclusive = true
-                                        }
-
-                                        launchSingleTop = true
-                                    }
-                                },
-
-                                onNavigateToRegister = {
-
-                                    navController.navigate(
-                                        Route.REGISTER
-                                    )
-                                },
-
-                                onNavigateToForgotPassword = {
-
-                                    navController.navigate(
-                                        Route.FORGOTPASSWORD
-                                    )
-                                }
-                            )
-                        }
-
-                        //INGREDIENT_REVIEW
-
-                        composable(
-                            Route.INGREDIENT_REVIEW
-                        ) {
-
-                            IngredientReviewScreen(
-
-                                initialIngredients =
-                                    scannedIngredients,
-
-                                onConfirm = { ingredients ->
-
-                                    homeViewModel
-                                        .findRecipesByIngredients(
-                                            ingredients
-                                        )
-
-                                    navController.navigate(
-                                        Route.RECIPE_RESULTS
-                                    )
-                                }
-                            )
-                        }
-
-                        // LOGIN
-                        composable(
-                            Route.FORGOTPASSWORD
-                        ) {
-
-                            ForgotPasswordScreen(
-
-                                onBack = {
-
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        // REGISTER
-                        composable(Route.REGISTER) {
-
-                            RegisterScreen(
-
-                                onRegisterSuccess = {
-
-                                    navController.navigate(
-                                        Route.LOGIN
-                                    )
-                                },
-
-                                onNavigateToLogin = {
-
-                                    navController.navigate(
-                                        Route.LOGIN
-                                    )
-                                }
-                            )
-                        }
-                    }
+                    )
                 }
             }
         }
+    }
+
+    private fun setAppLanguage(context: Context, languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
     }
 }

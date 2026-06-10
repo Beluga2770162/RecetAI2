@@ -1,25 +1,26 @@
-package com.example.recetai
+package com.example.recetai.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContactSupport
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.recetai.R
 import com.google.firebase.auth.FirebaseAuth
+import coil.compose.AsyncImage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     isDarkMode: Boolean,
@@ -27,359 +28,105 @@ fun ProfileScreen(
     currentLanguage: String,
     onLanguageChanged: (String) -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToContact: () -> Unit,
-    favoriteCount: Int = 0,
-    historyCount: Int = 0
+    onNavigateToHistory: () -> Unit,
+    onNavigateToHelp: () -> Unit,
+    onNavigateToStats: () -> Unit,
+    favoriteCount: Int,
+    historyCount: Int,
+    modifier: Modifier = Modifier
 ) {
-
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(16.dp),
-
-        horizontalAlignment =
-            Alignment.CenterHorizontally
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // --- CABECERA ---
+        if (user?.photoUrl != null) {
+            AsyncImage(model = user.photoUrl, contentDescription = stringResource(id = R.string.profile_photo_desc), modifier = Modifier.size(80.dp).clip(CircleShape))
+        } else {
+            Surface(modifier = Modifier.size(80.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Person, contentDescription = null, Modifier.size(40.dp)) }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(user?.displayName ?: stringResource(id = R.string.guest_user), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(user?.email ?: stringResource(id = R.string.not_logged_in), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor =
-                    MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
+        Spacer(modifier = Modifier.height(32.dp))
 
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
+        // --- ESTADÍSTICAS ---
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            StatCard(Icons.Default.Star, stringResource(id = R.string.favorites_title), favoriteCount.toString(), Modifier.weight(1f))
+            StatCard(Icons.AutoMirrored.Filled.List, stringResource(id = R.string.queries_title), historyCount.toString(), Modifier.weight(1f))
+        }
 
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(90.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+        Spacer(modifier = Modifier.height(32.dp))
 
-                Spacer(
-                    modifier = Modifier.height(12.dp)
-                )
-
-                Text(
-                    text =
-                        user?.displayName
-                            ?: "Usuario Invitado",
-
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
-                )
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text =
-                        user?.email
-                            ?: "Sin correo registrado"
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text("Cuenta Activa")
+        // --- PREFERENCIAS ---
+        SectionTitle(stringResource(id = R.string.preferences_section))
+        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.DarkMode, contentDescription = null)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(stringResource(id = R.string.dark_mode_title), modifier = Modifier.weight(1f))
+                    Switch(checked = isDarkMode, onCheckedChange = onThemeChanged)
+                }
+                Text(stringResource(id = R.string.language_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                    listOf("es" to "ES", "en" to "EN", "pt" to "PT").forEach { (code, label) ->
+                        FilterChip(selected = currentLanguage == code, onClick = { onLanguageChanged(code) }, label = { Text(label) })
                     }
-                )
-            }
-        }
-
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                Arrangement.spacedBy(8.dp)
-        ) {
-
-            Card(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment =
-                        Alignment.CenterHorizontally
-                ) {
-
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    Text(
-                        text = favoriteCount.toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    )
-
-                    Text("Favoritos")
-                }
-            }
-
-            Card(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment =
-                        Alignment.CenterHorizontally
-                ) {
-
-                    Icon(
-                        Icons.Default.Info,
-                        contentDescription = null
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    Text(
-                        text = historyCount.toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    )
-
-                    Text("Recetas")
                 }
             }
         }
 
-        Spacer(
-            modifier = Modifier.height(24.dp)
-        )
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Preferencias",
-            style =
-                MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-
-                Row(
-                    verticalAlignment =
-                        Alignment.CenterVertically
-                ) {
-
-                    Icon(
-                        Icons.Default.Settings,
-                        contentDescription = null
-                    )
-
-                    Spacer(
-                        modifier = Modifier.width(12.dp)
-                    )
-
-                    Text(
-                        text = "Modo Oscuro",
-                        modifier =
-                            Modifier.weight(1f)
-                    )
-
-                    Switch(
-                        checked = isDarkMode,
-                        onCheckedChange =
-                            onThemeChanged
-                    )
-                }
-
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
-
-                Text(
-                    text = "Idioma",
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                Row {
-
-                    FilterChip(
-                        selected =
-                            currentLanguage == "es",
-                        onClick = {
-                            onLanguageChanged("es")
-                        },
-                        label = {
-                            Text("ES")
-                        }
-                    )
-
-                    Spacer(
-                        modifier = Modifier.width(6.dp)
-                    )
-
-                    FilterChip(
-                        selected =
-                            currentLanguage == "en",
-                        onClick = {
-                            onLanguageChanged("en")
-                        },
-                        label = {
-                            Text("EN")
-                        }
-                    )
-
-                    Spacer(
-                        modifier = Modifier.width(6.dp)
-                    )
-
-                    FilterChip(
-                        selected =
-                            currentLanguage == "pt",
-                        onClick = {
-                            onLanguageChanged("pt")
-                        },
-                        label = {
-                            Text("PT")
-                        }
-                    )
-                }
+        // --- SOPORTE ---
+        SectionTitle(stringResource(id = R.string.info_support_section))
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                MenuOptionItem(Icons.AutoMirrored.Filled.List, stringResource(id = R.string.scan_history_title), onNavigateToHistory)
+                MenuOptionItem(Icons.Default.BarChart, stringResource(id = R.string.my_stats_title), onNavigateToStats)
+                MenuOptionItem(Icons.Default.Help, stringResource(id = R.string.help_center_title), onNavigateToHelp)
+                MenuOptionItem(Icons.Default.Info, stringResource(id = R.string.terms_conditions_title), onNavigateToTerms)
+                MenuOptionItem(Icons.Default.ContactSupport, stringResource(id = R.string.contact_center_title), onNavigateToContact)
             }
         }
 
-        Spacer(
-            modifier = Modifier.height(24.dp)
-        )
-
-        Text(
-            text = "Información",
-            style =
-                MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        OutlinedButton(
-            onClick = onNavigateToTerms,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Icon(
-                Icons.Default.Info,
-                contentDescription = null
-            )
-
-            Spacer(
-                modifier = Modifier.width(8.dp)
-            )
-
-            Text(
-                "Términos y Condiciones"
-            )
+        Spacer(modifier = Modifier.height(32.dp))
+        TextButton(onClick = { auth.signOut(); onNavigateToLogin() }) {
+            Text(stringResource(id = R.string.sign_out_button), color = MaterialTheme.colorScheme.error)
         }
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        OutlinedButton(
-            onClick = onNavigateToContact,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Icon(
-                Icons.Default.ContactSupport,
-                contentDescription = null
-            )
-
-            Spacer(
-                modifier = Modifier.width(8.dp)
-            )
-
-            Text("Centro de Ayuda")
-        }
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        Button(
-
-            onClick = {
-
-                FirebaseAuth
-                    .getInstance()
-                    .signOut()
-
-                onNavigateToLogin()
-            },
-
-            modifier = Modifier.fillMaxWidth(),
-
-            colors = ButtonDefaults.buttonColors(
-                containerColor =
-                    MaterialTheme.colorScheme.error
-            )
-
-        ) {
-
-            Icon(
-                Icons.Default.Logout,
-                contentDescription = null
-            )
-
-            Spacer(
-                modifier = Modifier.width(8.dp)
-            )
-
-            Text("Cerrar Sesión")
-        }
-
-        Text(
-            text = "RecetAI v1.0",
-            style =
-                MaterialTheme.typography.bodySmall
-        )
     }
+}
 
+@Composable
+fun StatCard(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
+            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(label, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(text: String) {
+    Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth())
+}
+
+@Composable
+fun MenuOptionItem(icon: ImageVector, title: String, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+    }
 }

@@ -1,20 +1,31 @@
 [versions]
-agp = "9.2.1"
-kotlin = "2.2.10"
-coreKtx = "1.12.0"
-lifecycleRuntimeKtx = "2.7.0"
-activityCompose = "1.8.2"
-composeBom = "2024.02.02"
-navigationCompose = "2.7.7"
-googleGmsGoogleServices = "4.4.1"
-firebaseBom = "32.8.0"
-camerax = "1.3.1"
+# Herramientas de Compilación y Lenguaje
+agp = "8.7.3" # Versión estable comercial del Android Gradle Plugin (altamente compatible con SDK 35)
+kotlin = "2.0.21" # Versión estable y optimizada de la era Kotlin 2.x para producción
+
+# AndroidX y Ciclo de vida
+coreKtx = "1.15.0"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+
+# UI y Navegación (Actualizadas para dar soporte nativo al compilador de Kotlin 2)
+composeBom = "2024.10.01" # BOM moderna compatible con arquitecturas Kotlin 2.x
+navigationCompose = "2.8.5"
+
+# Servicios de Google y Backend Firebase
+googleGmsGoogleServices = "4.4.2"
+firebaseBom = "33.7.0"
+
+# Hardware de Captura: CameraX
+camerax = "1.4.0"
 
 [libraries]
-# AndroidX y Compose
+# AndroidX y Arquitectura Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+# Ecosistema Jetpack Compose (Gestionado eficientemente vía BOM)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -22,13 +33,13 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
-# Firebase
+# Infraestructura Backend: Cloud Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 
-# CameraX
+# Controladores de Hardware: CameraX
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
