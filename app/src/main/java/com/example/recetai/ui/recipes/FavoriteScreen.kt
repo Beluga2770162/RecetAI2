@@ -18,7 +18,8 @@ import com.example.recetai.ui.home.RecipeHomeCard
 @Composable
 fun FavoritesScreen(
     viewModel: HomeViewModel,
-    onNavigateToDetail: () -> Unit
+    // CORRECCIÓN: Ahora acepta un objeto Recipe
+    onNavigateToDetail: (Recipe) -> Unit
 ) {
     val allRecipes by viewModel.recommendedRecipes.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
@@ -54,11 +55,11 @@ fun FavoritesScreen(
                 items(favoriteRecipes, key = { it.id }) { recipe ->
                     RecipeHomeCard(
                         recipe = recipe,
-                        isFavorite = true, // Siempre es true porque estamos en la lista de favoritos
+                        isFavorite = true,
                         onFavoriteClick = { viewModel.toggleFavorite(recipe) },
                         onClick = {
-                            viewModel.selectRecipe(recipe)
-                            onNavigateToDetail()
+                            // CORRECCIÓN: Pasamos la receta directamente aquí
+                            onNavigateToDetail(recipe)
                         }
                     )
                 }

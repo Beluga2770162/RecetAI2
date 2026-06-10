@@ -11,8 +11,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,8 +28,7 @@ import com.example.recetai.camera.IngredientAnalyzer
 fun ScanScreen(
     onSearchRecipes: (List<String>) -> Unit
 ) {
-    var ingredienteManual by remember { mutableStateOf("") }
-    var isSaving by remember { mutableStateOf(false) }
+    var isProcessing by remember { mutableStateOf(false) }
     var detectedIngredients by remember { mutableStateOf<List<String>>(emptyList()) }
 
     Column(
@@ -57,7 +54,9 @@ fun ScanScreen(
         ) {
             CameraPreviewWithPermissions(
                 onIngredientsDetected = { ingredientes ->
-                    detectedIngredients = ingredientes
+                    if (ingredientes != detectedIngredients) {
+                        detectedIngredients = ingredientes
+                    }
                 }
             )
         }
@@ -67,70 +66,41 @@ fun ScanScreen(
             Text(
                 text = "${stringResource(id = R.string.detected_prefix)} ${detectedIngredients.joinToString(", ")}",
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 16.dp),
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // --- ENTRADA MANUAL ---
-        OutlinedTextField(
-            value = ingredienteManual,
-            onValueChange = { ingredienteManual = it },
-            label = { Text(stringResource(id = R.string.manual_input)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = !isSaving
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        // --- BOTÓN ÚNICO DE CONFIRMACIÓN ---
         Button(
             onClick = {
-                isSaving = true
-                val listToSend = if (ingredienteManual.isNotBlank()) {
-                    listOf(ingredienteManual.trim().lowercase())
-                } else {
-                    detectedIngredients
-                }
-                onSearchRecipes(listToSend)
+                isProcessing = true
+                onSearchRecipes(detectedIngredients)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
-            enabled = (ingredienteManual.isNotBlank() || detectedIngredients.isNotEmpty()) && !isSaving
+                .height(56.dp),
+            enabled = detectedIngredients.isNotEmpty() && !isProcessing
         ) {
-            if (isSaving) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
+            if (isProcessing) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                // Cambia el texto del botón dependiendo de si escribiste o escaneaste
-                Text(
-                    if (ingredienteManual.isNotBlank())
-                        stringResource(id = R.string.review_manual_ingredient)
-                    else
-                        stringResource(id = R.string.review_scanned_ingredient)
-                )
+                Text(stringResource(id = R.string.review_scanned_ingredient))
             }
         }
     }
 }
 
-// --- LÓGICA DE LA CÁMARA CON PERMISOS ---
+// --- LÓGICA DE LA CÁMARA ---
 @Composable
 fun CameraPreviewWithPermissions(
     onIngredientsDetected: (List<String>) -> Unit
 ) {
     val context = LocalContext.current
     var hasPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-        )
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -152,31 +122,20 @@ fun CameraPreviewWithPermissions(
 
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
-
-                    val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
+                    val preview = Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
                     val imageAnalysis = ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
-                        .also {
-                            it.setAnalyzer(
-                                executor,
-                                IngredientAnalyzer(onIngredientsDetected = onIngredientsDetected)
-                            )
-                        }
-
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                        .also { it.setAnalyzer(executor, IngredientAnalyzer(onIngredientsDetected = onIngredientsDetected)) }
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
+                        cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageAnalysis)
                     } catch (e: Exception) {
                         Log.e("CameraPreview", "Fallo al vincular la cámara", e)
                     }
                 }, executor)
-
                 previewView
             },
             modifier = Modifier.fillMaxSize()

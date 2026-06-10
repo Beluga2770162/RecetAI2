@@ -27,7 +27,6 @@ class MainActivity : ComponentActivity() {
 
         val sharedPref = getSharedPreferences("RecetAI_Prefs", Context.MODE_PRIVATE)
 
-        // Aplicar idioma guardado antes de que cargue la UI
         val savedLanguage = sharedPref.getString("language", "es") ?: "es"
         setAppLanguage(this, savedLanguage)
 
@@ -41,16 +40,8 @@ class MainActivity : ComponentActivity() {
 
             val homeViewModel: HomeViewModel = viewModel()
 
-            // Carga inicial de datos desde el archivo JSON local
-            LaunchedEffect(Unit) {
-                try {
-                    val jsonString = application.resources.openRawResource(R.raw.recetas)
-                        .bufferedReader().use { it.readText() }
-                    homeViewModel.inicializarBaseDeDatos(jsonString)
-                } catch (e: Exception) {
-                    // Manejo silencioso o log de error si no existe el archivo
-                }
-            }
+            // ELIMINADO: Ya no llamamos a inicializarBaseDeDatos aquí,
+            // la carga ocurre automáticamente en el init del HomeViewModel.
 
             RecetAITheme(darkTheme = darkThemeEnabled) {
                 val navController = rememberNavController()
@@ -106,7 +97,7 @@ class MainActivity : ComponentActivity() {
                             currentLanguage = code
                             sharedPref.edit().putString("language", code).apply()
                             setAppLanguage(this@MainActivity, code)
-                            recreate() // Reinicia la actividad para aplicar el cambio de idioma
+                            recreate()
                         }
                     )
                 }

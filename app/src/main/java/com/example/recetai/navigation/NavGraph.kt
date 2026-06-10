@@ -8,17 +8,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.recetai.*
 import com.example.recetai.ui.auth.*
 import com.example.recetai.ui.home.*
 import com.example.recetai.ui.inventory.InventoryScreen
 import com.example.recetai.ui.recipes.*
 import com.example.recetai.ui.support.*
-import com.example.recetai.ui.support.TerminosScreen
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import com.example.recetai.ui.profile.ProfileScreen
 import com.example.recetai.ui.scan.ScanScreen
+import com.google.firebase.auth.FirebaseAuth
 
 object Route {
     const val SPLASH = "splash"
@@ -65,8 +62,8 @@ fun SetupNavGraph(
         composable(Route.HOME) {
             HomeScreen(
                 viewModel = homeViewModel,
-                onNavigateToScan = { navController.navigateToTab(Route.SCAN) },
-                onNavigateToProfile = { navController.navigateToTab(Route.PROFILE) },
+                onNavigateToScan = { navController.navigate(Route.SCAN) },
+                onNavigateToProfile = { navController.navigate(Route.PROFILE) },
                 onNavigateToDetail = { navController.navigate(Route.RECIPE_DETAIL) }
             )
         }
@@ -77,12 +74,7 @@ fun SetupNavGraph(
             val recipes by homeViewModel.searchResults.collectAsState()
             RecipeResultScreen(
                 recipes = recipes,
-                onBackHome = {
-                    navController.navigate(Route.HOME) {
-                        popUpTo(Route.HOME) { inclusive = true }
-                    }
-                },
-                // Corrección aplicada: Conexión hacia los detalles de la receta
+                onBackHome = { navController.popBackStack() },
                 onRecipeClick = { receta ->
                     homeViewModel.selectRecipe(receta)
                     navController.navigate(Route.RECIPE_DETAIL)
@@ -105,20 +97,47 @@ fun SetupNavGraph(
         }
 
         composable(Route.SCAN) {
-            ScanScreen(onSearchRecipes = {
-                homeViewModel.setIngredients(it)
+            ScanScreen(onSearchRecipes = { ingredients ->
+                homeViewModel.setIngredients(ingredients)
                 navController.navigate(Route.INGREDIENT_REVIEW)
             })
         }
 
-        composable(Route.FAVORITES) {
-            FavoritesScreen(
-                viewModel = homeViewModel,
-                onNavigateToDetail = { navController.navigate(Route.RECIPE_DETAIL) }
+        composable(Route.INGREDIENT_REVIEW) {
+            val ingredients by homeViewModel.lastScannedIngredients.collectAsState()
+            IngredientReviewScreen(
+                initialIngredients = ingredients,
+                onConfirm = { list ->
+                    homeViewModel.guardarIngredientesAlInventario(list)
+                    homeViewModel.guardarEnHistorial(list)
+                    homeViewModel.findRecipesOptimized(list)
+                    navController.navigate(Route.RECIPE_RESULTS)
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
+        composable(Route.FAVORITES) {
+            // 1. Recolectamos los estados necesarios del ViewModel
+            val favoriteIds by homeViewModel.favoriteIds.collectAsState()
+            val allRecipes by homeViewModel.recommendedRecipes.collectAsState()
+
+            // 2. Filtramos las recetas que son favoritas directamente aquí
+            val favoriteRecipes = allRecipes.filter { favoriteIds.contains(it.id) }
+
+            // 3. Pasamos solo la lista filtrada y las funciones necesarias
+                FavoritesScreen(
+                    // Aquí pasamos el viewModel tal como lo espera tu pantalla actual
+                    viewModel = homeViewModel,
+                    onNavigateToDetail = { receta ->
+                        homeViewModel.selectRecipe(receta)
+                        navController.navigate(Route.RECIPE_DETAIL)
+                    }
+                )
+        }
+
         composable(Route.PROFILE) {
+            // Asegúrate de que estas variables coincidan con las de tu HomeViewModel
             val favCount by homeViewModel.favoriteCount.collectAsState()
             val hisCount by homeViewModel.historyCount.collectAsState()
 
@@ -128,11 +147,8 @@ fun SetupNavGraph(
                 currentLanguage = currentLanguage,
                 onLanguageChanged = onLanguageChanged,
                 onNavigateToLogin = {
-                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
-                    navController.navigate(Route.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate(Route.LOGIN) { popUpTo(0) { inclusive = true } }
                 },
                 onNavigateToTerms = { navController.navigate(Route.TERMS) },
                 onNavigateToContact = { navController.navigate(Route.CONTACT) },
@@ -145,7 +161,7 @@ fun SetupNavGraph(
         }
 
         composable(Route.HISTORY) { HistoryScreen(onBack = { navController.popBackStack() }) }
-        composable(Route.TERMS) { TerminosScreen (onBack = { navController.popBackStack() }) }
+        composable(Route.TERMS) { TerminosScreen(onBack = { navController.popBackStack() }) }
         composable(Route.CONTACT) { ContactScreen(onBack = { navController.popBackStack() }) }
         composable(Route.HELP) { HelpScreen(onBack = { navController.popBackStack() }) }
         composable(Route.STATS) {
@@ -163,29 +179,13 @@ fun SetupNavGraph(
             )
         }
 
-        composable(Route.INGREDIENT_REVIEW) {
-            val ingredients by homeViewModel.lastScannedIngredients.collectAsState()
-            IngredientReviewScreen(
-                initialIngredients = ingredients,
-                onConfirm = { list ->
-                    homeViewModel.guardarIngredientesAlInventario(list)
-                    homeViewModel.guardarEnHistorial(list)
-                    homeViewModel.findRecipesOptimized(list)
-                    navController.navigate(Route.RECIPE_RESULTS)
-                },
-                onBack = { navController.popBackStack() }
+        composable(Route.REGISTER) {
+            RegisterScreen(
+                onRegisterSuccess = { navController.navigate(Route.LOGIN) },
+                onNavigateToLogin = { navController.navigate(Route.LOGIN) }
             )
         }
 
         composable(Route.FORGOTPASSWORD) { ForgotPasswordScreen(onBack = { navController.popBackStack() }) }
-        composable(Route.REGISTER) { RegisterScreen(onRegisterSuccess = { navController.navigate(Route.LOGIN) }, onNavigateToLogin = { navController.navigate(Route.LOGIN) }) }
-    }
-}
-
-fun NavHostController.navigateToTab(route: String) {
-    this.navigate(route) {
-        popUpTo(this@navigateToTab.graph.findStartDestination().id) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
     }
 }
